@@ -1,0 +1,14 @@
+# Archivos binarios
+/api-zoo
+
+# Módulos y dependencias
+vendor/
+
+# Archivos temporales
+*.log
+*.tmp
+
+# Archivos del sistema
+.DS_Store
+.idea/
+.vscode/

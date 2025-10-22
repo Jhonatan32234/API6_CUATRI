@@ -1,0 +1,291 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API para registrar y consultar atracciones y visitas, integradas con RabbitMQ.",
+        "title": "API de Atracciones y Visitas",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "name": "Equipo de Desarrollo API1",
+            "url": "http://github.com/tuusuario",
+            "email": "soporte@api1.com"
+        },
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/atracciones": {
+            "post": {
+                "description": "Crea atracciones en la base de datos y las envía a RabbitMQ si es posible",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "atracciones"
+                ],
+                "summary": "Crear una o varias atracciones",
+                "parameters": [
+                    {
+                        "description": "Arreglo de atracciones o una sola atracción",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Atraccion"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Atraccion"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/atracciones/dia": {
+            "get": {
+                "description": "Devuelve atracciones a partir de una fecha, y las envía a RabbitMQ",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "atracciones"
+                ],
+                "summary": "Obtener atracciones desde una fecha",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha desde la cual obtener atracciones (YYYY-MM-DD)",
+                        "name": "fecha",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Atraccion"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/visitas": {
+            "post": {
+                "description": "Crea visitas en la base de datos y las envía a RabbitMQ si es posible",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "visitas"
+                ],
+                "summary": "Crear una o varias visitas",
+                "parameters": [
+                    {
+                        "description": "Arreglo de visitas o una sola visita",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Visitas"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Visitas"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/visitas/dia": {
+            "get": {
+                "description": "Devuelve visitas a partir de una fecha, y las envía a RabbitMQ",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "visitas"
+                ],
+                "summary": "Obtener visitas desde una fecha",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Fecha desde la cual obtener visitas (YYYY-MM-DD)",
+                        "name": "fecha",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Visitas"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entities.Atraccion": {
+            "type": "object",
+            "properties": {
+                "enviado": {
+                    "type": "boolean"
+                },
+                "fecha": {
+                    "type": "string"
+                },
+                "hora": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nombre": {
+                    "type": "string"
+                },
+                "tiempo": {
+                    "type": "integer"
+                },
+                "zona": {
+                    "description": "Nuevo campo",
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Visitas": {
+            "type": "object",
+            "properties": {
+                "enviado": {
+                    "type": "boolean"
+                },
+                "fecha": {
+                    "type": "string"
+                },
+                "hora": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "visitantes": {
+                    "type": "integer"
+                },
+                "zona": {
+                    "description": "Nuevo campo",
+                    "type": "string"
+                }
+            }
+        }
+    }
+}
