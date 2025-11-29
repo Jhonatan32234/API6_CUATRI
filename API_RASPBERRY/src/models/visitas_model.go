@@ -5,8 +5,10 @@ import (
 	"api1/core/rabbitmq"
 	"api1/src/entities"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 )
 
 func GetVisitasFromDate(fecha string) ([]entities.Visitas, error) {
@@ -37,10 +39,40 @@ func GetVisitasFromDate(fecha string) ([]entities.Visitas, error) {
 	return visitas, nil
 }
 
+func validateVisita(visita entities.Visitas) error {
+	// Validar que Visitantes sea mayor a 0
+	if visita.Visitantes <= 0 {
+		return fmt.Errorf("el campo 'visitantes' debe ser mayor a 0")
+	}
+
+	// Validar que no haya campos vacíos o nulos
+	if visita.Hora == "" || strings.TrimSpace(visita.Hora) == "" {
+		return fmt.Errorf("el campo 'hora' es requerido")
+	}
+
+	if visita.Fecha == "" || strings.TrimSpace(visita.Fecha) == "" {
+		return fmt.Errorf("el campo 'fecha' es requerido")
+	}
+
+	if visita.Zona == "" || strings.TrimSpace(visita.Zona) == "" {
+		return fmt.Errorf("el campo 'zona' es requerido")
+	}
+
+	return nil
+}
+
 func SaveVisitas(input []entities.Visitas) ([]entities.Visitas, error) {
 	var guardadas []entities.Visitas
+	var errores []string
 
 	for _, item := range input {
+		// Validar cada visita antes de guardar
+		if err := validateVisita(item); err != nil {
+			errores = append(errores, fmt.Sprintf("Visita inválida: %v", err))
+			log.Printf("❌ Validación fallida para visita: %v", err)
+			continue
+		}
+
 		item.Enviado = false
 		if err := database.DB.Create(&item).Error; err != nil {
 			log.Println("❌ Error al guardar visita:", err)
@@ -48,6 +80,11 @@ func SaveVisitas(input []entities.Visitas) ([]entities.Visitas, error) {
 		} else {
 			guardadas = append(guardadas, item)
 		}
+	}
+
+	// Si hay errores de validación, retornarlos
+	if len(errores) > 0 && len(guardadas) == 0 {
+		return nil, fmt.Errorf("errores de validación: %s", strings.Join(errores, "; "))
 	}
 
 	if len(guardadas) == 0 {

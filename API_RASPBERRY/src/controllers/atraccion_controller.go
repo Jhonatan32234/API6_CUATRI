@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +59,12 @@ func CreateAtracciones(c *gin.Context) {
 	if err := json.Unmarshal(body, &unaAtraccion); err == nil {
 		result, err := models.SaveAtracciones([]entities.Atraccion{unaAtraccion})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar atracción"})
+			// Manejar errores de validación específicos
+			if strings.Contains(err.Error(), "errores de validación") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar atracción"})
+			}
 			return
 		}
 		c.JSON(http.StatusCreated, result)
@@ -69,7 +75,12 @@ func CreateAtracciones(c *gin.Context) {
 	if err := json.Unmarshal(body, &variasAtracciones); err == nil {
 		result, err := models.SaveAtracciones(variasAtracciones)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar atracciones"})
+			// Manejar errores de validación específicos
+			if strings.Contains(err.Error(), "errores de validación") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar atracciones"})
+			}
 			return
 		}
 		c.JSON(http.StatusCreated, result)

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 )
@@ -58,7 +59,12 @@ func CreateVisitas(c *gin.Context) {
 	if err := json.Unmarshal(body, &unaVisita); err == nil {
 		result, err := models.SaveVisitas([]entities.Visitas{unaVisita})
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar visita"})
+			// Manejar errores de validación específicos
+			if strings.Contains(err.Error(), "errores de validación") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar visita"})
+			}
 			return
 		}
 		c.JSON(http.StatusCreated, result)
@@ -69,7 +75,12 @@ func CreateVisitas(c *gin.Context) {
 	if err := json.Unmarshal(body, &variasVisitas); err == nil {
 		result, err := models.SaveVisitas(variasVisitas)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar visitas"})
+			// Manejar errores de validación específicos
+			if strings.Contains(err.Error(), "errores de validación") {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			} else {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error al guardar visitas"})
+			}
 			return
 		}
 		c.JSON(http.StatusCreated, result)

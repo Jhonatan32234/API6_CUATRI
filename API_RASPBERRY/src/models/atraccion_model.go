@@ -5,9 +5,13 @@ import (
 	"api1/core/rabbitmq"
 	"api1/src/entities"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
+	"strings"
 )
+
+
 
 func GetAtraccionesFromDate(fecha string) ([]entities.Atraccion, error) {
 	var atracciones []entities.Atraccion
@@ -34,10 +38,44 @@ func GetAtraccionesFromDate(fecha string) ([]entities.Atraccion, error) {
 	return atracciones, nil
 }
 
+func validateAtraccion(atraccion entities.Atraccion) error {
+	// Validar que Tiempo sea mayor a 0
+	if atraccion.Tiempo <= 0 {
+		return fmt.Errorf("el campo 'tiempo' debe ser mayor a 0")
+	}
+
+	// Validar que no haya campos vacíos o nulos
+	if atraccion.Nombre == "" || strings.TrimSpace(atraccion.Nombre) == "" {
+		return fmt.Errorf("el campo 'nombre' es requerido")
+	}
+
+	if atraccion.Hora == "" || strings.TrimSpace(atraccion.Hora) == "" {
+		return fmt.Errorf("el campo 'hora' es requerido")
+	}
+
+	if atraccion.Fecha == "" || strings.TrimSpace(atraccion.Fecha) == "" {
+		return fmt.Errorf("el campo 'fecha' es requerido")
+	}
+
+	if atraccion.Zona == "" || strings.TrimSpace(atraccion.Zona) == "" {
+		return fmt.Errorf("el campo 'zona' es requerido")
+	}
+
+	return nil
+}
+
 func SaveAtracciones(input []entities.Atraccion) ([]entities.Atraccion, error) {
 	var guardadas []entities.Atraccion
+	var errores []string
 
 	for _, item := range input {
+		// Validar cada atracción antes de guardar
+		if err := validateAtraccion(item); err != nil {
+			errores = append(errores, fmt.Sprintf("Atracción inválida: %v", err))
+			log.Printf("❌ Validación fallida para atracción: %v", err)
+			continue
+		}
+
 		item.Enviado = false
 		if err := database.DB.Create(&item).Error; err != nil {
 			log.Println("❌ Error al guardar atracción:", err)
@@ -45,6 +83,11 @@ func SaveAtracciones(input []entities.Atraccion) ([]entities.Atraccion, error) {
 		} else {
 			guardadas = append(guardadas, item)
 		}
+	}
+
+	// Si hay errores de validación, retornarlos
+	if len(errores) > 0 && len(guardadas) == 0 {
+		return nil, fmt.Errorf("errores de validación: %s", strings.Join(errores, "; "))
 	}
 
 	if len(guardadas) == 0 {
@@ -63,7 +106,6 @@ func SaveAtracciones(input []entities.Atraccion) ([]entities.Atraccion, error) {
 			rabbitmq.PublishIDToZoneTopic("atracciones_topic", item.Zona, item.Id, "atracciones")
 		}
 	}
-
 
 	return toSend, nil
 }

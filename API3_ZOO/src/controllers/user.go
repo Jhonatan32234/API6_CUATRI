@@ -83,17 +83,31 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Validar que el nombre de usuario no exista
+	var existingUser models.User
+	result := db.DB.Where("username = ?", strings.TrimSpace(username)).First(&existingUser)
+	if result.Error == nil {
+		// Si no hay error, significa que encontró un usuario con ese nombre
+		http.Error(w, "El nombre de usuario ya existe", http.StatusBadRequest)
+		return
+	}
+
 	hashedPwd, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	user := models.User{
-		Username: username,
+		Username: strings.TrimSpace(username),
 		Password: string(hashedPwd),
 		Role:     role,
-		Zona:     zona,
+		Zona:     strings.TrimSpace(zona),
 		Image:    imageBytes,
 	}
 
 	if err := db.DB.Create(&user).Error; err != nil {
-		http.Error(w, "Error al guardar usuario", http.StatusBadRequest)
+		// Verificar si el error es por duplicación de username (por si acaso)
+		if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
+			http.Error(w, "El nombre de usuario ya existe", http.StatusBadRequest)
+			return
+		}
+		http.Error(w, "Error al guardar usuario: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -244,6 +258,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		password = r.FormValue("password")
 		zona = r.FormValue("zona")
 
+		// Validar que el nombre de usuario no exista (si se está actualizando)
+		if username != "" && username != user.Username {
+			var existingUser models.User
+			result := db.DB.Where("username = ? AND id != ?", strings.TrimSpace(username), id).First(&existingUser)
+			if result.Error == nil {
+				http.Error(w, "El nombre de usuario ya existe", http.StatusBadRequest)
+				return
+			}
+		}
+
 		file, _, err := r.FormFile("image")
 		if err == nil {
 			defer file.Close()
@@ -278,6 +302,16 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		role = input.Role
 		zona = input.Zona
 
+		// Validar que el nombre de usuario no exista (si se está actualizando)
+		if username != "" && username != user.Username {
+			var existingUser models.User
+			result := db.DB.Where("username = ? AND id != ?", strings.TrimSpace(username), id).First(&existingUser)
+			if result.Error == nil {
+				http.Error(w, "El nombre de usuario ya existe", http.StatusBadRequest)
+				return
+			}
+		}
+
 		if input.Image != "" {
 			imageBase64 = input.Image
 			imageUpdated = true
@@ -287,13 +321,13 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 	updates := map[string]interface{}{}
 
 	if username != "" {
-		updates["username"] = username
+		updates["username"] = strings.TrimSpace(username)
 	}
 	if role != "" {
 		updates["role"] = role
 	}
 	if zona != "" {
-		updates["zona"] = zona
+		updates["zona"] = strings.TrimSpace(zona)
 	}
 	if password != "" {
 		hashed, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -304,16 +338,21 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 		updates["password"] = string(hashed)
 	}
 	if imageUpdated {
-        decodedImage, err := base64.StdEncoding.DecodeString(imageBase64)
-        if err != nil {
-        	http.Error(w, "Error al decodificar imagen", http.StatusBadRequest)
-        	return
-        }
-        updates["image"] = decodedImage
+		decodedImage, err := base64.StdEncoding.DecodeString(imageBase64)
+		if err != nil {
+			http.Error(w, "Error al decodificar imagen", http.StatusBadRequest)
+			return
+		}
+		updates["image"] = decodedImage
 	}
 
 	if len(updates) > 0 {
 		if err := db.DB.Model(&user).Updates(updates).Error; err != nil {
+			// Verificar si el error es por duplicación de username
+			if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "Duplicate") {
+				http.Error(w, "El nombre de usuario ya existe", http.StatusBadRequest)
+				return
+			}
 			http.Error(w, "Error al actualizar usuario: "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -321,6 +360,7 @@ func UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Usuario actualizado"))
 }
+
 
 
 
