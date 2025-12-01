@@ -1,0 +1,32 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: zoo3_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: userdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db3_data:/var/lib/mysql
+  api:
+    build: .
+    container_name: zoo3_api
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: appuser
+      DB_PASSWORD: apppass
+      DB_NAME: userdb
+      RABBITCONN: amqp://admin:password@rabbitmq:5672/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+volumes:
+  db3_data:

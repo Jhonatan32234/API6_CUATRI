@@ -1,0 +1,46 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: zoo_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: data
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: zoo_rabbit
+    restart: always
+    ports:
+      - "5672:5672"   # puerto de conexión
+      - "15672:15672" # consola web de administración
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: password
+
+  api:
+    build: .
+    container_name: zoo_api
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: appuser
+      DB_PASSWORD: apppass
+      DB_NAME: data
+      RABBITCONN: amqp://admin:password@rabbitmq:5672/
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+      - rabbitmq
+
+volumes:
+  db_data:

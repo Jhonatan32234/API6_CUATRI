@@ -50,9 +50,9 @@ func main() {
 	routes.SetupRoutes(r)
 
 	// Mensajes en consola
-	log.Println("🚀 Servidor iniciado en http://localhost:8081")
-	log.Println("📘 Documentación Swagger disponible en: http://localhost:8081/swagger/index.html")
+	log.Println("🚀 Servidor iniciado en http://localhost:808")
+	log.Println("📘 Documentación Swagger disponible en: http://localhost:8080/swagger/index.html")
 
 	// Ejecutar servidor
-	r.Run(":8081")
+	r.Run(":8080")
 }

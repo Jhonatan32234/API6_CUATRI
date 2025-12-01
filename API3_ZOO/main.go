@@ -41,8 +41,8 @@ func main() {
 	// Middleware CORS
 	handlerWithCORS := utils.CORS(r)
 
-	log.Println("🚀 Servidor corriendo en http://localhost:8082")
-	log.Println("📘 Documentación Swagger disponible en: http://localhost:8082/swagger/index.html")
+	log.Println("🚀 Servidor corriendo en http://localhost:8080")
+	log.Println("📘 Documentación Swagger disponible en: http://localhost:8080/swagger/index.html")
 
-	log.Fatal(http.ListenAndServe(":8082", handlerWithCORS))
+	log.Fatal(http.ListenAndServe(":8080", handlerWithCORS))
 }
